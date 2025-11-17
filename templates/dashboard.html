@@ -2340,6 +2340,9 @@
         }
 
         // ========== Duplicate Detection ==========
+        // Store duplicates data globally
+        let currentDuplicates = [];
+
         async function findDuplicates() {
             const operationId = 'findDuplicates';
             const cards = document.querySelectorAll('#cleanupContent .card');
@@ -2357,6 +2360,9 @@
                 const container = document.getElementById('duplicatesContainer');
 
                 if (data.success && data.duplicates && data.duplicates.length > 0) {
+                    // Store duplicates for later use
+                    currentDuplicates = data.duplicates;
+
                     let html = `
                         <div class="alert alert-warning active">
                             <span class="alert-icon">⚠️</span>
@@ -2385,6 +2391,7 @@
                     container.innerHTML = html;
                     showToast(`Found ${data.duplicates.length} sets of duplicates`, 'warning', 'Scan Complete');
                 } else {
+                    currentDuplicates = [];
                     container.innerHTML = `
                         <div class="empty-state">
                             <div class="empty-state-icon">✅</div>
@@ -2404,8 +2411,62 @@
             }
         }
 
-        function deleteDuplicates(index) {
-            alert('Delete duplicates functionality would be implemented here for set ' + index);
+        async function deleteDuplicates(index) {
+            const duplicateSet = currentDuplicates[index];
+            if (!duplicateSet || !duplicateSet.emails) {
+                showToast('Error: Duplicate set not found', 'error');
+                return;
+            }
+
+            // Sort emails by date (newest first) and keep the newest one
+            const emailsSorted = [...duplicateSet.emails].sort((a, b) => {
+                const dateA = new Date(a.date);
+                const dateB = new Date(b.date);
+                return dateB - dateA;
+            });
+
+            // Get all email IDs except the first one (newest)
+            const emailIdsToDelete = emailsSorted.slice(1).map(email => email.id);
+
+            if (emailIdsToDelete.length === 0) {
+                showToast('No duplicates to delete', 'warning');
+                return;
+            }
+
+            // Confirm deletion
+            if (!confirm(`Delete ${emailIdsToDelete.length} duplicate email(s)? (Keeping the most recent one)`)) {
+                return;
+            }
+
+            const operationId = 'deleteDuplicates';
+            const cards = document.querySelectorAll('#cleanupContent .card');
+            const duplicatesCard = cards[3];
+
+            startOperation(operationId, 'cleanup');
+            setCardLoading(duplicatesCard, true, 'Deleting duplicates...');
+
+            try {
+                const response = await fetch('/api/duplicates/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email_ids: emailIdsToDelete })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast(data.message || 'Duplicates deleted successfully!', 'success');
+                    // Refresh duplicates list
+                    await findDuplicates();
+                } else {
+                    showToast('Error: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showToast('Failed to delete duplicates: ' + error.message, 'error');
+            } finally {
+                setCardLoading(duplicatesCard, false);
+                endOperation(operationId, 'cleanup');
+            }
         }
 
         // ========== Gmail Account Management ==========

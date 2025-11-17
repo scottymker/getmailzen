@@ -593,6 +593,44 @@ def find_duplicates():
         }), 500
 
 
+@app.route('/api/duplicates/delete', methods=['POST'])
+@login_required
+def delete_duplicates():
+    """Delete duplicate emails (keeps the most recent one)"""
+    try:
+        data = request.json or {}
+        email_ids = data.get('email_ids', [])
+
+        if not email_ids:
+            return jsonify({
+                'success': False,
+                'error': 'No email IDs provided'
+            }), 400
+
+        from app.gmail_service import GmailService
+        gmail = GmailService(user_id=current_user.id)
+
+        deleted_count = 0
+        for email_id in email_ids:
+            try:
+                gmail.delete_email(email_id)
+                deleted_count += 1
+            except Exception as e:
+                print(f"Error deleting email {email_id}: {e}")
+
+        return jsonify({
+            'success': True,
+            'deleted_count': deleted_count,
+            'message': f'Successfully deleted {deleted_count} duplicate email(s)'
+        })
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
 if __name__ == '__main__':
     print("=" * 60)
     print("Gmail Agent Web Interface")
