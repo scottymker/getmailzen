@@ -198,8 +198,9 @@ def connect_gmail():
     """Initiate Gmail OAuth flow"""
     oauth_manager = OAuthManager()
 
-    # Generate redirect URI
-    redirect_uri = url_for('gmail_oauth_callback', _external=True, _scheme='http')
+    # Generate redirect URI (use https in production)
+    scheme = 'https' if os.getenv('FLASK_ENV') == 'production' else 'http'
+    redirect_uri = url_for('gmail_oauth_callback', _external=True, _scheme=scheme)
 
     # Store state in session for security
     import secrets
