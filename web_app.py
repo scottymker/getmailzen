@@ -631,6 +631,67 @@ def delete_duplicates():
         }), 500
 
 
+@app.route('/api/test-anthropic', methods=['GET'])
+@login_required
+def test_anthropic():
+    """Diagnostic endpoint to test Anthropic API connection"""
+    try:
+        import os
+        from anthropic import Anthropic
+
+        # Check if API key is set
+        api_key = os.getenv('ANTHROPIC_API_KEY')
+
+        if not api_key:
+            return jsonify({
+                'success': False,
+                'error': 'ANTHROPIC_API_KEY environment variable is not set',
+                'api_key_present': False,
+                'api_key_preview': None
+            })
+
+        # Show first and last 4 characters of API key for verification
+        api_key_preview = f"{api_key[:7]}...{api_key[-4:]}" if len(api_key) > 11 else "TOO_SHORT"
+
+        # Try to make a simple API call
+        try:
+            client = Anthropic(api_key=api_key)
+            message = client.messages.create(
+                model="claude-sonnet-4-5-20250929",
+                max_tokens=50,
+                messages=[
+                    {"role": "user", "content": "Say 'API connection successful!' and nothing else."}
+                ]
+            )
+
+            response_text = message.content[0].text
+
+            return jsonify({
+                'success': True,
+                'message': 'Anthropic API is working correctly',
+                'api_key_present': True,
+                'api_key_preview': api_key_preview,
+                'test_response': response_text,
+                'model_used': 'claude-sonnet-4-5-20250929'
+            })
+
+        except Exception as api_error:
+            return jsonify({
+                'success': False,
+                'error': f'API call failed: {str(api_error)}',
+                'error_type': type(api_error).__name__,
+                'api_key_present': True,
+                'api_key_preview': api_key_preview
+            })
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'Unexpected error: {str(e)}',
+            'error_type': type(e).__name__
+        }), 500
+
+
 if __name__ == '__main__':
     print("=" * 60)
     print("Gmail Agent Web Interface")
