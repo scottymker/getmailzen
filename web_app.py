@@ -234,9 +234,16 @@ def connect_gmail():
 @login_required
 def gmail_oauth_callback():
     """Handle Gmail OAuth callback"""
+    print(f"🔍 OAuth callback received for user {current_user.id}")
+    print(f"🔍 Request URL: {request.url}")
+
     # Verify state for security
     state = request.args.get('state')
+    print(f"🔍 State from request: {state}")
+    print(f"🔍 State from session: {session.get('oauth_state')}")
+
     if state != session.get('oauth_state'):
+        print("❌ OAuth state mismatch!")
         flash('OAuth state mismatch. Please try again.', 'error')
         return redirect(url_for('dashboard'))
 
@@ -247,21 +254,35 @@ def gmail_oauth_callback():
     authorization_response = request.url
 
     # Generate redirect URI (must match the one used in connect_gmail)
-    redirect_uri = url_for('gmail_oauth_callback', _external=True, _scheme='http')
+    if request.host.startswith('localhost') or request.host.startswith('127.0.0.1'):
+        scheme = 'http'
+    else:
+        scheme = 'https'
+    redirect_uri = url_for('gmail_oauth_callback', _external=True, _scheme=scheme)
+
+    print(f"🔍 Using redirect_uri: {redirect_uri}")
 
     # Handle OAuth callback
-    oauth_manager = OAuthManager()
-    success, message = oauth_manager.handle_oauth_callback(
-        user_id=current_user.id,
-        authorization_response=authorization_response,
-        redirect_uri=redirect_uri
-    )
-    oauth_manager.close()
+    try:
+        oauth_manager = OAuthManager()
+        success, message = oauth_manager.handle_oauth_callback(
+            user_id=current_user.id,
+            authorization_response=authorization_response,
+            redirect_uri=redirect_uri
+        )
+        oauth_manager.close()
 
-    if success:
-        flash(message, 'success')
-    else:
-        flash(message, 'error')
+        print(f"🔍 OAuth callback result: success={success}, message={message}")
+
+        if success:
+            flash(message, 'success')
+        else:
+            flash(message, 'error')
+    except Exception as e:
+        print(f"❌ OAuth callback exception: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        flash(f'OAuth callback failed: {str(e)}', 'error')
 
     return redirect(url_for('dashboard'))
 
