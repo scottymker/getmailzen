@@ -236,6 +236,7 @@ def gmail_oauth_callback():
     """Handle Gmail OAuth callback"""
     print(f"🔍 OAuth callback received for user {current_user.id}")
     print(f"🔍 Request URL: {request.url}")
+    print(f"🔍 X-Forwarded-Proto: {request.headers.get('X-Forwarded-Proto')}")
 
     # Verify state for security
     state = request.args.get('state')
@@ -250,16 +251,21 @@ def gmail_oauth_callback():
     # Clear state from session
     session.pop('oauth_state', None)
 
-    # Get authorization response (full callback URL)
-    authorization_response = request.url
-
-    # Generate redirect URI (must match the one used in connect_gmail)
+    # Determine the correct scheme (Railway sends X-Forwarded-Proto header)
     if request.host.startswith('localhost') or request.host.startswith('127.0.0.1'):
         scheme = 'http'
     else:
-        scheme = 'https'
+        # Use X-Forwarded-Proto header for production (Railway reverse proxy)
+        scheme = request.headers.get('X-Forwarded-Proto', 'https')
+
+    # Reconstruct the authorization response URL with correct scheme
+    authorization_response = request.url.replace('http://', f'{scheme}://', 1)
+
+    # Generate redirect URI (must match the one used in connect_gmail)
     redirect_uri = url_for('gmail_oauth_callback', _external=True, _scheme=scheme)
 
+    print(f"🔍 Using scheme: {scheme}")
+    print(f"🔍 Using authorization_response: {authorization_response}")
     print(f"🔍 Using redirect_uri: {redirect_uri}")
 
     # Handle OAuth callback
