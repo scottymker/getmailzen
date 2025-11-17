@@ -58,12 +58,21 @@ class OAuthManager:
             tuple: (authorization_url, state)
         """
         flow = self.create_oauth_flow(redirect_uri)
+
+        # Debug: Log the scopes being requested
+        print(f"🔍 OAuth scopes being requested: {self.SCOPES}")
+        print(f"🔍 Flow scopes: {flow.client_config.get('scopes', 'NOT FOUND')}")
+
         authorization_url, state = flow.authorization_url(
             access_type='offline',  # Get refresh token
             include_granted_scopes='true',
             state=state,
             prompt='consent'  # Force consent to get refresh token
         )
+
+        # Debug: Log the generated URL
+        print(f"🔍 Authorization URL: {authorization_url}")
+
         return authorization_url, state
 
     def handle_oauth_callback(self, user_id, authorization_response, redirect_uri):
@@ -218,6 +227,9 @@ class OAuthManager:
         import json
         with open(self.credentials_file, 'r') as f:
             creds_data = json.load(f)
+            # Support both 'web' and 'installed' OAuth client types
+            if 'web' in creds_data:
+                return creds_data['web']['client_id']
             return creds_data['installed']['client_id']
 
     def _get_client_secret(self):
@@ -225,6 +237,9 @@ class OAuthManager:
         import json
         with open(self.credentials_file, 'r') as f:
             creds_data = json.load(f)
+            # Support both 'web' and 'installed' OAuth client types
+            if 'web' in creds_data:
+                return creds_data['web']['client_secret']
             return creds_data['installed']['client_secret']
 
     def get_user_gmail_accounts(self, user_id):
