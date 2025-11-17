@@ -201,6 +201,10 @@ class GmailService:
             print(f'Error deleting message: {error}')
             return False
 
+    def delete_email(self, message_id):
+        """Alias for delete_message - permanently delete an email"""
+        return self.delete_message(message_id)
+
     def star_message(self, message_id):
         """Add star to a message"""
         try:
