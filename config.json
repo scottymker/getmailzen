@@ -1,0 +1,45 @@
+{
+  "categories": [
+    {
+      "name": "Newsletters",
+      "description": "Marketing emails, newsletters, and subscriptions that are sent regularly"
+    },
+    {
+      "name": "Shopping",
+      "description": "E-commerce receipts, shipping notifications, order confirmations, promotional offers"
+    },
+    {
+      "name": "Social",
+      "description": "Social media notifications, friend requests, comments, likes"
+    },
+    {
+      "name": "Finance",
+      "description": "Bank statements, credit card bills, payment confirmations, financial alerts"
+    },
+    {
+      "name": "Work",
+      "description": "Professional correspondence, work-related emails, business communications"
+    },
+    {
+      "name": "Personal",
+      "description": "Personal emails from friends and family, one-to-one correspondence"
+    },
+    {
+      "name": "Travel",
+      "description": "Flight bookings, hotel reservations, travel itineraries"
+    },
+    {
+      "name": "Spam",
+      "description": "Unwanted promotional emails, suspicious emails, low-value marketing"
+    },
+    {
+      "name": "Important",
+      "description": "Time-sensitive emails, urgent matters, important notifications"
+    }
+  ],
+  "processing_settings": {
+    "max_emails": 50,
+    "query": "is:unread",
+    "dry_run": true
+  }
+}

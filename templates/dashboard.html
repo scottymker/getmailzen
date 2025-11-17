@@ -1,0 +1,2550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gmail Agent - Modern Dashboard</title>
+
+    <!-- Chart.js for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <style>
+        /* ========== CSS Variables for Easy Theming ========== */
+        :root {
+            --primary-gradient-start: #667eea;
+            --primary-gradient-end: #764ba2;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --info-color: #3b82f6;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --bg-light: #f9fafb;
+            --border-color: #e5e7eb;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.15);
+            --transition: all 0.3s ease;
+        }
+
+        /* ========== Global Reset and Base Styles ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--text-primary);
+        }
+
+        /* ========== Container and Layout ========== */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* ========== Header Section ========== */
+        .header {
+            background: white;
+            padding: 30px 40px;
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header-left h1 {
+            font-size: 32px;
+            background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        .header-left p {
+            color: var(--text-secondary);
+            font-size: 16px;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        /* ========== Tab Navigation ========== */
+        .tabs {
+            background: white;
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            padding: 10px;
+            margin-bottom: 30px;
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+        }
+
+        .tab {
+            flex: 1;
+            min-width: 150px;
+            padding: 15px 25px;
+            background: transparent;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .tab:hover {
+            background: var(--bg-light);
+            color: var(--text-primary);
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end));
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+
+        .tab-icon {
+            font-size: 20px;
+        }
+
+        /* ========== Tab Content ========== */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ========== Card Styles ========== */
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            padding: 30px;
+            margin-bottom: 25px;
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--bg-light);
+        }
+
+        .card-header h2 {
+            font-size: 24px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .card-icon {
+            font-size: 28px;
+        }
+
+        /* ========== Inbox Health Score ========== */
+        .health-score-container {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .health-score-circle {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 0 auto;
+        }
+
+        .health-score-canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .health-score-inner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .health-score-number {
+            font-size: 72px;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 10px;
+        }
+
+        .health-score-grade {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .health-score-label {
+            font-size: 16px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .health-metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .health-metric {
+            background: var(--bg-light);
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid var(--primary-gradient-start);
+        }
+
+        .health-metric-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .health-metric-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        /* ========== Smart Suggestions ========== */
+        .suggestions-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .suggestion-item {
+            background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+            padding: 25px;
+            border-radius: 12px;
+            border-left: 5px solid var(--info-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            transition: var(--transition);
+        }
+
+        .suggestion-item:hover {
+            transform: translateX(5px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .suggestion-content {
+            flex: 1;
+        }
+
+        .suggestion-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .suggestion-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .suggestion-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* ========== Buttons ========== */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end));
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .btn-warning {
+            background: var(--warning-color);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--bg-light);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+        .btn-icon {
+            padding: 10px;
+            width: 40px;
+            height: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ========== Form Elements ========== */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-input,
+        .form-select {
+            padding: 12px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 15px;
+            transition: var(--transition);
+            background: white;
+        }
+
+        .form-input:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--primary-gradient-start);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .form-checkbox input {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        /* ========== Range Slider ========== */
+        .range-container {
+            margin: 20px 0;
+        }
+
+        .range-slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: var(--bg-light);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end));
+            cursor: pointer;
+            box-shadow: var(--shadow-md);
+        }
+
+        .range-slider::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end));
+            cursor: pointer;
+            box-shadow: var(--shadow-md);
+            border: none;
+        }
+
+        .range-value {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .range-current {
+            font-weight: 700;
+            font-size: 20px;
+            color: var(--primary-gradient-start);
+        }
+
+        /* ========== Progress Bar ========== */
+        .progress-container {
+            margin: 20px 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: var(--bg-light);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end));
+            border-radius: 10px;
+            transition: width 0.5s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* ========== Loading Spinner ========== */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .loading-content {
+            text-align: center;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid var(--bg-light);
+            border-top: 5px solid var(--primary-gradient-start);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* ========== Alerts and Notifications ========== */
+        .alert {
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            animation: slideDown 0.3s ease;
+        }
+
+        .alert.active {
+            display: flex;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .alert-icon {
+            font-size: 24px;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            border-left: 4px solid var(--success-color);
+            color: #065f46;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            border-left: 4px solid var(--danger-color);
+            color: #991b1b;
+        }
+
+        .alert-warning {
+            background: #fef3c7;
+            border-left: 4px solid var(--warning-color);
+            color: #92400e;
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            border-left: 4px solid var(--info-color);
+            color: #1e40af;
+        }
+
+        /* ========== Stats Grid ========== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end));
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            transition: var(--transition);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-value {
+            font-size: 40px;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* ========== Results Display ========== */
+        .results-container {
+            margin-top: 30px;
+        }
+
+        .result-item {
+            background: var(--bg-light);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--primary-gradient-start);
+            transition: var(--transition);
+        }
+
+        .result-item:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateX(3px);
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 12px;
+        }
+
+        .result-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 5px;
+        }
+
+        .result-meta {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .result-badges {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        /* ========== Badges ========== */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-success { background: #d1fae5; color: #065f46; }
+        .badge-warning { background: #fef3c7; color: #92400e; }
+        .badge-danger { background: #fee2e2; color: #991b1b; }
+        .badge-info { background: #dbeafe; color: #1e40af; }
+        .badge-purple { background: #f3e8ff; color: #6b21a8; }
+
+        /* ========== Tooltip ========== */
+        .tooltip {
+            position: relative;
+            display: inline-flex;
+            cursor: help;
+        }
+
+        .tooltip-icon {
+            width: 18px;
+            height: 18px;
+            background: var(--text-secondary);
+            color: white;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .tooltip-text {
+            visibility: hidden;
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--text-primary);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 13px;
+            white-space: nowrap;
+            z-index: 100;
+            opacity: 0;
+            transition: var(--transition);
+            box-shadow: var(--shadow-md);
+        }
+
+        .tooltip-text::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: var(--text-primary);
+        }
+
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* ========== Modal ========== */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 35px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: modalSlide 0.3s ease;
+        }
+
+        @keyframes modalSlide {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            margin-bottom: 25px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        /* ========== List Items ========== */
+        .list-container {
+            margin-top: 20px;
+        }
+
+        .list-item {
+            background: white;
+            border: 2px solid var(--border-color);
+            padding: 18px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: var(--transition);
+        }
+
+        .list-item:hover {
+            border-color: var(--primary-gradient-start);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .list-item-content {
+            flex: 1;
+        }
+
+        .list-item-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 5px;
+        }
+
+        .list-item-meta {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* ========== Empty State ========== */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .empty-state-text {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .empty-state-subtext {
+            font-size: 14px;
+        }
+
+        /* ========== Responsive Design ========== */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .tab {
+                min-width: unset;
+            }
+
+            .health-score-container {
+                grid-template-columns: 1fr;
+            }
+
+            .health-metrics {
+                grid-template-columns: 1fr;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .suggestion-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        /* ========== Connection Status Indicator ========== */
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--bg-light);
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.connected {
+            background: var(--success-color);
+        }
+
+        .status-dot.disconnected {
+            background: var(--danger-color);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* ========== Global Progress Bar ========== */
+        .global-progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: transparent;
+            z-index: 9999;
+            display: none;
+        }
+
+        .global-progress-bar.active {
+            display: block;
+        }
+
+        .global-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-gradient-start), var(--primary-gradient-end), var(--primary-gradient-start));
+            background-size: 200% 100%;
+            animation: progressSlide 2s linear infinite;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        @keyframes progressSlide {
+            0% { background-position: 0% 0%; }
+            100% { background-position: 200% 0%; }
+        }
+
+        /* ========== Card-level Loading Spinner ========== */
+        .card-loading {
+            position: relative;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        .card-spinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--bg-light);
+            border-top: 4px solid var(--primary-gradient-start);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            z-index: 10;
+        }
+
+        .card-loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 9;
+        }
+
+        .card-loading-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* ========== Toast Notifications ========== */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 400px;
+        }
+
+        .toast {
+            background: white;
+            padding: 16px 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: toastSlideIn 0.3s ease;
+            border-left: 4px solid var(--info-color);
+            min-width: 300px;
+        }
+
+        .toast.toast-success { border-left-color: var(--success-color); }
+        .toast.toast-error { border-left-color: var(--danger-color); }
+        .toast.toast-warning { border-left-color: var(--warning-color); }
+        .toast.toast-info { border-left-color: var(--info-color); }
+
+        @keyframes toastSlideIn {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .toast.toast-exit {
+            animation: toastSlideOut 0.3s ease forwards;
+        }
+
+        @keyframes toastSlideOut {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+        }
+
+        .toast-icon {
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text-primary);
+        }
+
+        .toast-message {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+
+        .toast-close:hover {
+            background: var(--bg-light);
+        }
+
+        /* ========== Tab Badge ========== */
+        .tab-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 20px;
+            height: 20px;
+            padding: 0 6px;
+            background: var(--danger-color);
+            color: white;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 700;
+            margin-left: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        .tab.active .tab-badge {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* ========== Progress Text in Cards ========== */
+        .operation-progress {
+            background: var(--bg-light);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .operation-progress-spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--bg-light);
+            border-top: 3px solid var(--primary-gradient-start);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+    </style>
+</head>
+<body>
+    <!-- Global Progress Bar -->
+    <div id="globalProgressBar" class="global-progress-bar">
+        <div id="globalProgressFill" class="global-progress-fill"></div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <h1>Gmail Agent Dashboard</h1>
+                <p>AI-powered intelligent email management</p>
+            </div>
+            <div class="header-right">
+                <div class="connection-status" id="connectionStatus">
+                    <span class="status-dot disconnected" id="statusDot"></span>
+                    <span id="statusText">Checking connection...</span>
+                </div>
+                <button class="btn btn-secondary btn-sm" onclick="testConnection()">
+                    <span>🔄</span> Refresh
+                </button>
+            </div>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('home')" id="homeTab">
+                <span class="tab-icon">🏠</span>
+                <span>Home</span>
+            </button>
+            <button class="tab" onclick="switchTab('process')" id="processTab">
+                <span class="tab-icon">⚡</span>
+                <span>Process Emails</span>
+            </button>
+            <button class="tab" onclick="switchTab('cleanup')" id="cleanupTab">
+                <span class="tab-icon">🧹</span>
+                <span>Cleanup Tools</span>
+            </button>
+            <button class="tab" onclick="switchTab('settings')" id="settingsTab">
+                <span class="tab-icon">⚙️</span>
+                <span>Settings</span>
+            </button>
+        </div>
+
+        <!-- Tab Contents -->
+
+        <!-- ========== HOME TAB ========== -->
+        <div id="homeContent" class="tab-content active">
+            <!-- Inbox Health Score Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>
+                        <span class="card-icon">💚</span>
+                        Inbox Health Score
+                        <span class="tooltip">
+                            <span class="tooltip-icon">?</span>
+                            <span class="tooltip-text">AI-powered analysis of your inbox organization and cleanliness</span>
+                        </span>
+                    </h2>
+                    <button class="btn btn-primary btn-sm" onclick="refreshHealthScore()">
+                        <span>🔄</span> Refresh Score
+                    </button>
+                </div>
+
+                <div class="health-score-container">
+                    <div class="health-score-circle">
+                        <canvas id="healthScoreChart" class="health-score-canvas"></canvas>
+                        <div class="health-score-inner">
+                            <div class="health-score-number" id="healthScoreNumber">--</div>
+                            <div class="health-score-grade" id="healthScoreGrade">-</div>
+                            <div class="health-score-label">Health Score</div>
+                        </div>
+                    </div>
+
+                    <div class="health-metrics">
+                        <div class="health-metric">
+                            <div class="health-metric-label">Total Emails</div>
+                            <div class="health-metric-value" id="totalEmails">--</div>
+                        </div>
+                        <div class="health-metric">
+                            <div class="health-metric-label">Unread Count</div>
+                            <div class="health-metric-value" id="unreadCount">--</div>
+                        </div>
+                        <div class="health-metric">
+                            <div class="health-metric-label">Storage Used</div>
+                            <div class="health-metric-value" id="storageUsed">--</div>
+                        </div>
+                        <div class="health-metric">
+                            <div class="health-metric-label">Inbox Age</div>
+                            <div class="health-metric-value" id="inboxAge">--</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Smart Suggestions Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>
+                        <span class="card-icon">💡</span>
+                        Attention Needed
+                        <span class="tooltip">
+                            <span class="tooltip-icon">?</span>
+                            <span class="tooltip-text">AI-powered recommendations for improving your inbox</span>
+                        </span>
+                    </h2>
+                    <button class="btn btn-primary btn-sm" onclick="loadSmartSuggestions()">
+                        <span>🤖</span> Get AI Suggestions
+                    </button>
+                </div>
+
+                <div id="suggestionsContainer" class="suggestions-grid">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🎯</div>
+                        <div class="empty-state-text">No suggestions yet</div>
+                        <div class="empty-state-subtext">Click "Get AI Suggestions" to analyze your inbox</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== PROCESS EMAILS TAB ========== -->
+        <div id="processContent" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h2>
+                        <span class="card-icon">⚡</span>
+                        Process Emails with AI
+                    </h2>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">
+                            Maximum Emails
+                            <span class="tooltip">
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltip-text">Number of emails to process in this batch</span>
+                            </span>
+                        </label>
+                        <input type="number" id="maxEmails" class="form-input" value="50" min="1" max="500">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            Filter Query
+                            <span class="tooltip">
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltip-text">Gmail search query to filter which emails to process</span>
+                            </span>
+                        </label>
+                        <select id="queryFilter" class="form-select">
+                            <option value="is:unread">Unread emails only</option>
+                            <option value="">All emails</option>
+                            <option value="is:unread newer_than:7d">Unread from last 7 days</option>
+                            <option value="category:promotions">Promotions</option>
+                            <option value="category:social">Social</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-checkbox">
+                    <input type="checkbox" id="dryRun" checked>
+                    <label for="dryRun">
+                        <strong>Dry Run Mode</strong> (Preview actions without executing)
+                    </label>
+                </div>
+
+                <div style="margin-top: 25px; display: flex; gap: 12px;">
+                    <button class="btn btn-primary" onclick="processEmails()">
+                        <span>🚀</span> Start Processing
+                    </button>
+                    <button class="btn btn-secondary" onclick="suggestCategories()">
+                        <span>🤖</span> AI Suggest Categories
+                    </button>
+                </div>
+
+                <!-- Processing Progress -->
+                <div id="processingProgress" style="display: none;">
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                        </div>
+                        <div class="progress-label">
+                            <span id="progressText">Processing emails...</span>
+                            <span id="progressPercent">0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Display -->
+                <div id="processStats"></div>
+
+                <!-- Results Display -->
+                <div id="processResults"></div>
+            </div>
+        </div>
+
+        <!-- ========== CLEANUP TOOLS TAB ========== -->
+        <div id="cleanupContent" class="tab-content">
+            <!-- Retention Policy Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>
+                        <span class="card-icon">📅</span>
+                        Email Retention Policy
+                        <span class="tooltip">
+                            <span class="tooltip-icon">?</span>
+                            <span class="tooltip-text">Automatically clean up old emails to free storage space</span>
+                        </span>
+                    </h2>
+                </div>
+
+                <div class="range-container">
+                    <label class="form-label">Delete emails older than:</label>
+                    <input type="range" id="retentionMonths" class="range-slider"
+                           min="3" max="24" value="6" oninput="updateRetentionValue()">
+                    <div class="range-value">
+                        <span>3 months</span>
+                        <span class="range-current" id="retentionValue">6 months</span>
+                        <span>24 months</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Category Filter (optional)</label>
+                    <select id="retentionCategory" class="form-select">
+                        <option value="">All categories</option>
+                        <option value="Newsletters">Newsletters</option>
+                        <option value="Shopping">Shopping</option>
+                        <option value="Social">Social</option>
+                        <option value="Promotions">Promotions</option>
+                    </select>
+                </div>
+
+                <div style="margin-top: 20px; display: flex; gap: 12px;">
+                    <button class="btn btn-primary" onclick="analyzeOldEmails()">
+                        <span>🔍</span> Analyze Old Emails
+                    </button>
+                    <button class="btn btn-danger" onclick="confirmDeleteOldEmails()">
+                        <span>🗑️</span> Delete Old Emails
+                    </button>
+                </div>
+
+                <div id="retentionResults"></div>
+            </div>
+
+            <!-- Whitelist Management Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>
+                        <span class="card-icon">🛡️</span>
+                        Protected Senders Whitelist
+                        <span class="tooltip">
+                            <span class="tooltip-icon">?</span>
+                            <span class="tooltip-text">Emails from these senders will never be automatically deleted</span>
+                        </span>
+                    </h2>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Add Email Address to Whitelist</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="email" id="whitelistEmail" class="form-input"
+                               placeholder="example@domain.com">
+                        <button class="btn btn-primary" onclick="addToWhitelist()">
+                            <span>➕</span> Add
+                        </button>
+                    </div>
+                </div>
+
+                <div id="whitelistContainer" class="list-container">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📋</div>
+                        <div class="empty-state-text">No whitelisted senders yet</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Unsubscribe Opportunities Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>
+                        <span class="card-icon">📧</span>
+                        Unsubscribe Opportunities
+                        <span class="tooltip">
+                            <span class="tooltip-icon">?</span>
+                            <span class="tooltip-text">Find newsletters and subscriptions you can unsubscribe from</span>
+                        </span>
+                    </h2>
+                    <button class="btn btn-primary btn-sm" onclick="findUnsubscribeOpportunities()">
+                        <span>🔍</span> Scan for Subscriptions
+                    </button>
+                </div>
+
+                <div id="unsubscribeContainer">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">✉️</div>
+                        <div class="empty-state-text">Click "Scan for Subscriptions" to find newsletters</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Duplicate Detection Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>
+                        <span class="card-icon">🔄</span>
+                        Duplicate Email Detection
+                        <span class="tooltip">
+                            <span class="tooltip-icon">?</span>
+                            <span class="tooltip-text">Find and remove duplicate emails to save space</span>
+                        </span>
+                    </h2>
+                    <button class="btn btn-primary btn-sm" onclick="findDuplicates()">
+                        <span>🔍</span> Scan for Duplicates
+                    </button>
+                </div>
+
+                <div id="duplicatesContainer">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📎</div>
+                        <div class="empty-state-text">Click "Scan for Duplicates" to analyze</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== SETTINGS TAB ========== -->
+        <div id="settingsContent" class="tab-content">
+            <!-- Gmail Account Management -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>
+                        <span class="card-icon">📧</span>
+                        Gmail Account Connection
+                    </h2>
+                </div>
+
+                <div class="alert alert-info active">
+                    <span class="alert-icon">ℹ️</span>
+                    Connect your Gmail account to enable email processing and automation.
+                </div>
+
+                <div id="gmail-accounts-container">
+                    <!-- Connected accounts will be loaded here -->
+                    <div id="gmail-accounts-loading" style="text-align: center; padding: 20px; color: #6b7280;">
+                        Loading Gmail accounts...
+                    </div>
+                </div>
+
+                <a href="/connect-gmail" class="btn btn-primary" style="display: inline-block; margin-top: 15px;">
+                    <span>🔗</span> Connect Gmail Account
+                </a>
+            </div>
+
+            <!-- Configuration Settings -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>
+                        <span class="card-icon">⚙️</span>
+                        Configuration Settings
+                    </h2>
+                </div>
+
+                <div class="alert alert-info active">
+                    <span class="alert-icon">ℹ️</span>
+                    Settings are automatically saved and will persist across sessions.
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Default Processing Settings</label>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Default Max Emails</label>
+                            <input type="number" id="defaultMaxEmails" class="form-input" value="50">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Default Query</label>
+                            <select id="defaultQuery" class="form-select">
+                                <option value="is:unread">Unread emails only</option>
+                                <option value="">All emails</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-checkbox">
+                    <input type="checkbox" id="defaultDryRun" checked>
+                    <label for="defaultDryRun">
+                        <strong>Enable Dry Run by Default</strong>
+                    </label>
+                </div>
+
+                <button class="btn btn-primary" onclick="saveSettings()">
+                    <span>💾</span> Save Settings
+                </button>
+            </div>
+
+            <!-- Categories Configuration -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>
+                        <span class="card-icon">🏷️</span>
+                        Email Categories
+                    </h2>
+                </div>
+
+                <div id="categoriesList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Confirm Action</h3>
+            </div>
+            <div class="modal-body" id="modalBody">
+                Are you sure you want to proceed?
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-danger" id="modalConfirmBtn" onclick="modalConfirmAction()">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== Global Variables ==========
+        let healthChart = null;
+        let currentConfig = null;
+        let whitelist = [];
+        let modalCallback = null;
+        let activeOperations = new Set(); // Track active operations
+        let tabOperations = {}; // Track operations per tab
+
+        // ========== Initialization ==========
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Gmail Agent Dashboard Loaded');
+            testConnection();
+            loadSettings();
+            initializeHealthChart();
+        });
+
+        // ========== Tab Switching ==========
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(tabName + 'Tab').classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tabName + 'Content').classList.add('active');
+
+            // Load tab-specific data
+            if (tabName === 'home' && !tabOperations.home) {
+                refreshHealthScore();
+            } else if (tabName === 'settings') {
+                loadGmailAccounts();
+                loadCategories();
+            }
+        }
+
+        // ========== Global Progress Bar Management ==========
+        function showGlobalProgress(show, progress = 0) {
+            const bar = document.getElementById('globalProgressBar');
+            const fill = document.getElementById('globalProgressFill');
+
+            if (show) {
+                bar.classList.add('active');
+                fill.style.width = progress + '%';
+            } else {
+                fill.style.width = '100%';
+                setTimeout(() => {
+                    bar.classList.remove('active');
+                    fill.style.width = '0%';
+                }, 300);
+            }
+        }
+
+        function updateGlobalProgress(progress) {
+            const fill = document.getElementById('globalProgressFill');
+            fill.style.width = progress + '%';
+        }
+
+        // ========== Card-level Loading Management ==========
+        function setCardLoading(cardElement, loading, message = '') {
+            if (loading) {
+                cardElement.classList.add('card-loading');
+                const overlay = document.createElement('div');
+                overlay.className = 'card-loading-overlay';
+                overlay.innerHTML = `
+                    <div class="card-spinner"></div>
+                    ${message ? `<div class="card-loading-text">${message}</div>` : ''}
+                `;
+                cardElement.appendChild(overlay);
+            } else {
+                cardElement.classList.remove('card-loading');
+                const overlay = cardElement.querySelector('.card-loading-overlay');
+                if (overlay) overlay.remove();
+            }
+        }
+
+        // ========== Toast Notification System ==========
+        let toastCounter = 0;
+
+        function showToast(message, type = 'info', title = null, duration = 5000) {
+            const container = document.getElementById('toastContainer');
+            const toastId = 'toast-' + (++toastCounter);
+
+            const icons = {
+                success: '✅',
+                error: '❌',
+                warning: '⚠️',
+                info: 'ℹ️'
+            };
+
+            const titles = {
+                success: title || 'Success',
+                error: title || 'Error',
+                warning: title || 'Warning',
+                info: title || 'Info'
+            };
+
+            const toast = document.createElement('div');
+            toast.id = toastId;
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `
+                <span class="toast-icon">${icons[type]}</span>
+                <div class="toast-content">
+                    <div class="toast-title">${titles[type]}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+                <button class="toast-close" onclick="dismissToast('${toastId}')">×</button>
+            `;
+
+            container.appendChild(toast);
+
+            if (duration > 0) {
+                setTimeout(() => dismissToast(toastId), duration);
+            }
+
+            return toastId;
+        }
+
+        function dismissToast(toastId) {
+            const toast = document.getElementById(toastId);
+            if (toast) {
+                toast.classList.add('toast-exit');
+                setTimeout(() => toast.remove(), 300);
+            }
+        }
+
+        // ========== Operation Tracking ==========
+        function startOperation(operationId, tabName = null) {
+            activeOperations.add(operationId);
+            if (tabName) {
+                if (!tabOperations[tabName]) tabOperations[tabName] = new Set();
+                tabOperations[tabName].add(operationId);
+                updateTabBadge(tabName);
+            }
+            if (activeOperations.size > 0) {
+                showGlobalProgress(true, 10);
+            }
+        }
+
+        function endOperation(operationId, tabName = null) {
+            activeOperations.delete(operationId);
+            if (tabName && tabOperations[tabName]) {
+                tabOperations[tabName].delete(operationId);
+                updateTabBadge(tabName);
+            }
+            if (activeOperations.size === 0) {
+                showGlobalProgress(false);
+            }
+        }
+
+        function updateTabBadge(tabName) {
+            const tab = document.getElementById(tabName + 'Tab');
+            if (!tab) return;
+
+            let badge = tab.querySelector('.tab-badge');
+            const count = tabOperations[tabName] ? tabOperations[tabName].size : 0;
+
+            if (count > 0) {
+                if (!badge) {
+                    badge = document.createElement('span');
+                    badge.className = 'tab-badge';
+                    tab.appendChild(badge);
+                }
+                badge.textContent = count;
+            } else {
+                if (badge) badge.remove();
+            }
+        }
+
+
+        // ========== Connection Testing ==========
+        async function testConnection() {
+            try {
+                const response = await fetch('/api/test-connection');
+                const data = await response.json();
+
+                const statusDot = document.getElementById('statusDot');
+                const statusText = document.getElementById('statusText');
+
+                if (data.success) {
+                    statusDot.className = 'status-dot connected';
+                    statusText.textContent = 'Connected';
+                } else {
+                    statusDot.className = 'status-dot disconnected';
+                    statusText.textContent = 'Disconnected';
+                }
+            } catch (error) {
+                console.error('Connection test failed:', error);
+                document.getElementById('statusDot').className = 'status-dot disconnected';
+                document.getElementById('statusText').textContent = 'Error';
+            }
+        }
+
+        // ========== Health Score Chart ==========
+        function initializeHealthChart() {
+            const ctx = document.getElementById('healthScoreChart');
+            if (!ctx) return;
+
+            healthChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [0, 100],
+                        backgroundColor: ['#667eea', '#e5e7eb'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    cutout: '85%',
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { enabled: false }
+                    }
+                }
+            });
+        }
+
+        function updateHealthChart(score) {
+            if (!healthChart) return;
+
+            // Determine color based on score
+            let color;
+            if (score >= 80) color = '#10b981'; // Green
+            else if (score >= 60) color = '#f59e0b'; // Yellow
+            else color = '#ef4444'; // Red
+
+            healthChart.data.datasets[0].data = [score, 100 - score];
+            healthChart.data.datasets[0].backgroundColor = [color, '#e5e7eb'];
+            healthChart.update();
+
+            // Update score display
+            document.getElementById('healthScoreNumber').textContent = score;
+            document.getElementById('healthScoreNumber').style.color = color;
+
+            // Calculate grade
+            let grade;
+            if (score >= 90) grade = 'A';
+            else if (score >= 80) grade = 'B';
+            else if (score >= 70) grade = 'C';
+            else if (score >= 60) grade = 'D';
+            else grade = 'F';
+
+            document.getElementById('healthScoreGrade').textContent = grade;
+            document.getElementById('healthScoreGrade').style.color = color;
+        }
+
+        // ========== Refresh Health Score ==========
+        async function refreshHealthScore() {
+            const operationId = 'healthScore';
+            const card = document.querySelector('#homeContent .card');
+
+            startOperation(operationId, 'home');
+            setCardLoading(card, true, 'Analyzing inbox health...');
+            updateGlobalProgress(30);
+
+            try {
+                const response = await fetch('/api/inbox-health');
+                const data = await response.json();
+
+                updateGlobalProgress(70);
+
+                if (data.success && data.health) {
+                    const health = data.health;
+
+                    // Update health score
+                    updateHealthChart(health.score || 0);
+
+                    // Update metrics
+                    document.getElementById('totalEmails').textContent =
+                        (health.total_emails || 0).toLocaleString();
+                    document.getElementById('unreadCount').textContent =
+                        (health.unread_count || 0).toLocaleString();
+                    document.getElementById('storageUsed').textContent =
+                        health.storage_used || '--';
+                    document.getElementById('inboxAge').textContent =
+                        health.oldest_email_age || '--';
+
+                    showToast('Health score updated successfully', 'success');
+                } else {
+                    showToast('Failed to load health data', 'error');
+                }
+            } catch (error) {
+                console.error('Error fetching health score:', error);
+                showToast('Error loading health score: ' + error.message, 'error');
+            } finally {
+                updateGlobalProgress(100);
+                setCardLoading(card, false);
+                endOperation(operationId, 'home');
+            }
+        }
+
+        // ========== Smart Suggestions ==========
+        async function loadSmartSuggestions() {
+            const operationId = 'suggestions';
+            const cards = document.querySelectorAll('#homeContent .card');
+            const suggestionsCard = cards[1]; // Second card on home tab
+
+            startOperation(operationId, 'home');
+            setCardLoading(suggestionsCard, true, 'Getting AI-powered suggestions...');
+            updateGlobalProgress(30);
+
+            try {
+                const response = await fetch('/api/smart-suggestions');
+                const data = await response.json();
+
+                updateGlobalProgress(70);
+
+                const container = document.getElementById('suggestionsContainer');
+
+                if (data.success && data.suggestions && data.suggestions.length > 0) {
+                    container.innerHTML = '';
+
+                    data.suggestions.forEach((suggestion, index) => {
+                        const suggestionHTML = `
+                            <div class="suggestion-item">
+                                <div class="suggestion-content">
+                                    <div class="suggestion-title">${suggestion.title || 'Suggestion'}</div>
+                                    <div class="suggestion-description">${suggestion.description || suggestion.action}</div>
+                                </div>
+                                <div class="suggestion-actions">
+                                    <button class="btn btn-primary btn-sm"
+                                            onclick="executeSuggestion(${index}, '${suggestion.action}')">
+                                        <span>✨</span> Take Action
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                        container.innerHTML += suggestionHTML;
+                    });
+
+                    showToast(`Found ${data.suggestions.length} suggestions`, 'success');
+                } else {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">🎉</div>
+                            <div class="empty-state-text">Your inbox looks great!</div>
+                            <div class="empty-state-subtext">No urgent actions needed right now</div>
+                        </div>
+                    `;
+                    showToast('No suggestions needed - inbox looks great!', 'info');
+                }
+            } catch (error) {
+                console.error('Error loading suggestions:', error);
+                showToast('Error loading suggestions: ' + error.message, 'error');
+            } finally {
+                updateGlobalProgress(100);
+                setCardLoading(suggestionsCard, false);
+                endOperation(operationId, 'home');
+            }
+        }
+
+        function executeSuggestion(index, action) {
+            alert('Suggestion action would be executed: ' + action);
+            // Implement specific action handlers here
+        }
+
+        // ========== Process Emails ==========
+        async function processEmails() {
+            const maxEmails = document.getElementById('maxEmails').value;
+            const query = document.getElementById('queryFilter').value;
+            const dryRun = document.getElementById('dryRun').checked;
+
+            const operationId = 'processEmails';
+            const card = document.querySelector('#processContent .card');
+
+            startOperation(operationId, 'process');
+            setCardLoading(card, true, `Processing up to ${maxEmails} emails...`);
+            updateGlobalProgress(10);
+
+            // Show progress bar
+            const progressDiv = document.getElementById('processingProgress');
+            progressDiv.style.display = 'block';
+            updateProgress(0, 'Starting...');
+
+            try {
+                updateProgress(20, 'Fetching emails from inbox...');
+                updateGlobalProgress(30);
+
+                const response = await fetch('/api/process', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        max_emails: parseInt(maxEmails),
+                        query: query,
+                        dry_run: dryRun
+                    })
+                });
+
+                updateProgress(60, 'AI analyzing emails...');
+                updateGlobalProgress(60);
+
+                const data = await response.json();
+
+                if (data.success) {
+                    updateProgress(100, 'Complete!');
+                    updateGlobalProgress(90);
+                    displayProcessResults(data.results);
+
+                    const processed = data.results.processed || data.results.total || 0;
+                    showToast(`Successfully processed ${processed} emails!`, 'success', 'Processing Complete');
+                } else {
+                    showToast('Error: ' + data.error, 'error', 'Processing Failed');
+                }
+            } catch (error) {
+                console.error('Error processing emails:', error);
+                showToast('Error: ' + error.message, 'error', 'Processing Failed');
+            } finally {
+                updateGlobalProgress(100);
+                setCardLoading(card, false);
+                endOperation(operationId, 'process');
+
+                setTimeout(() => {
+                    progressDiv.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        function updateProgress(percent, text) {
+            document.getElementById('progressFill').style.width = percent + '%';
+            document.getElementById('progressPercent').textContent = Math.round(percent) + '%';
+            document.getElementById('progressText').textContent = text;
+        }
+
+        function displayProcessResults(results) {
+            // Display stats
+            const statsHTML = `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">${results.total || 0}</div>
+                        <div class="stat-label">Total Emails</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${results.stats?.labeled || 0}</div>
+                        <div class="stat-label">Labeled</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${results.stats?.archived || 0}</div>
+                        <div class="stat-label">Archived</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${results.stats?.starred || 0}</div>
+                        <div class="stat-label">Starred</div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('processStats').innerHTML = statsHTML;
+
+            // Display results
+            const resultsContainer = document.getElementById('processResults');
+
+            if (results.results && results.results.length > 0) {
+                let resultsHTML = '<div class="results-container"><h3 style="margin: 20px 0;">Processing Results</h3>';
+
+                results.results.forEach(result => {
+                    const priorityClass = result.priority === 'high' ? 'danger' :
+                                        (result.priority === 'medium' ? 'warning' : 'info');
+                    const confidenceClass = result.confidence === 'high' ? 'success' :
+                                          (result.confidence === 'medium' ? 'warning' : 'info');
+
+                    resultsHTML += `
+                        <div class="result-item">
+                            <div class="result-header">
+                                <div>
+                                    <div class="result-title">${result.subject || 'No Subject'}</div>
+                                    <div class="result-meta">From: ${result.sender || 'Unknown'}</div>
+                                </div>
+                                <div class="result-badges">
+                                    <span class="badge badge-purple">${result.category || 'Uncategorized'}</span>
+                                    <span class="badge badge-${priorityClass}">${result.priority || 'low'}</span>
+                                    <span class="badge badge-${confidenceClass}">${result.confidence || 'low'} conf</span>
+                                </div>
+                            </div>
+                            <div class="result-meta">
+                                <strong>Actions:</strong> ${(result.actions_taken || []).join(', ') || 'None'}
+                            </div>
+                            <div class="result-meta">
+                                <strong>Reasoning:</strong> ${result.reasoning || 'No reasoning provided'}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                resultsHTML += '</div>';
+                resultsContainer.innerHTML = resultsHTML;
+            } else {
+                resultsContainer.innerHTML = '';
+            }
+        }
+
+        // ========== Suggest Categories ==========
+        async function suggestCategories() {
+            const operationId = 'suggestCategories';
+            const card = document.querySelector('#processContent .card');
+
+            startOperation(operationId, 'process');
+            setCardLoading(card, true, 'AI is analyzing your inbox...');
+            updateGlobalProgress(20);
+
+            try {
+                const response = await fetch('/api/suggest-categories', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sample_size: 50 })
+                });
+
+                updateGlobalProgress(70);
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast('AI has suggested new categories! Check the Settings tab.', 'success', 'Categories Updated');
+                } else {
+                    showToast('Error: ' + data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error suggesting categories:', error);
+                showToast('Error: ' + error.message, 'error');
+            } finally {
+                updateGlobalProgress(100);
+                setCardLoading(card, false);
+                endOperation(operationId, 'process');
+            }
+        }
+
+        // ========== Retention Policy ==========
+        function updateRetentionValue() {
+            const months = document.getElementById('retentionMonths').value;
+            document.getElementById('retentionValue').textContent = months + ' months';
+        }
+
+        async function analyzeOldEmails() {
+            const months = document.getElementById('retentionMonths').value;
+            const category = document.getElementById('retentionCategory').value;
+
+            const operationId = 'analyzeOldEmails';
+            const cards = document.querySelectorAll('#cleanupContent .card');
+            const retentionCard = cards[0];
+
+            startOperation(operationId, 'cleanup');
+            setCardLoading(retentionCard, true, 'Analyzing old emails...');
+            updateGlobalProgress(30);
+
+            try {
+                const response = await fetch('/api/retention/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ months: parseInt(months), category: category || null })
+                });
+
+                updateGlobalProgress(70);
+                const data = await response.json();
+
+                if (data.success && data.analysis) {
+                    const analysis = data.analysis;
+                    const resultsHTML = `
+                        <div class="results-container">
+                            <h3 style="margin: 20px 0;">Analysis Results</h3>
+                            <div class="alert alert-info active">
+                                <span class="alert-icon">📊</span>
+                                Found ${analysis.total_emails || 0} emails older than ${months} months
+                                ${analysis.total_size ? `(${analysis.total_size})` : ''}
+                            </div>
+                        </div>
+                    `;
+                    document.getElementById('retentionResults').innerHTML = resultsHTML;
+                    showToast(`Found ${analysis.total_emails || 0} old emails`, 'info', 'Analysis Complete');
+                } else {
+                    showToast('Error analyzing emails: ' + (data.error || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Error: ' + error.message, 'error');
+            } finally {
+                updateGlobalProgress(100);
+                setCardLoading(retentionCard, false);
+                endOperation(operationId, 'cleanup');
+            }
+        }
+
+        function confirmDeleteOldEmails() {
+            const months = document.getElementById('retentionMonths').value;
+            showModal(
+                'Delete Old Emails',
+                `Are you sure you want to delete all emails older than ${months} months? This action cannot be undone.`,
+                deleteOldEmails
+            );
+        }
+
+        async function deleteOldEmails() {
+            const months = document.getElementById('retentionMonths').value;
+            const category = document.getElementById('retentionCategory').value;
+
+            closeModal();
+
+            const operationId = 'deleteOldEmails';
+            const cards = document.querySelectorAll('#cleanupContent .card');
+            const retentionCard = cards[0];
+
+            startOperation(operationId, 'cleanup');
+            setCardLoading(retentionCard, true, 'Deleting old emails...');
+            updateGlobalProgress(20);
+
+            try {
+                const response = await fetch('/api/retention/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        months: parseInt(months),
+                        category: category || null,
+                        whitelist: whitelist,
+                        dry_run: false
+                    })
+                });
+
+                updateGlobalProgress(70);
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast(`Successfully deleted ${data.results?.deleted || 0} emails!`, 'success', 'Deletion Complete');
+                    analyzeOldEmails(); // Refresh analysis
+                } else {
+                    showToast('Error: ' + data.error, 'error', 'Deletion Failed');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Error: ' + error.message, 'error', 'Deletion Failed');
+            } finally {
+                updateGlobalProgress(100);
+                setCardLoading(retentionCard, false);
+                endOperation(operationId, 'cleanup');
+            }
+        }
+
+        // ========== Whitelist Management ==========
+        function addToWhitelist() {
+            const email = document.getElementById('whitelistEmail').value.trim();
+
+            if (!email) {
+                alert('Please enter an email address');
+                return;
+            }
+
+            if (!email.includes('@')) {
+                alert('Please enter a valid email address');
+                return;
+            }
+
+            if (whitelist.includes(email)) {
+                alert('This email is already whitelisted');
+                return;
+            }
+
+            whitelist.push(email);
+            document.getElementById('whitelistEmail').value = '';
+            displayWhitelist();
+        }
+
+        function removeFromWhitelist(email) {
+            whitelist = whitelist.filter(e => e !== email);
+            displayWhitelist();
+        }
+
+        function displayWhitelist() {
+            const container = document.getElementById('whitelistContainer');
+
+            if (whitelist.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📋</div>
+                        <div class="empty-state-text">No whitelisted senders yet</div>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            whitelist.forEach(email => {
+                html += `
+                    <div class="list-item">
+                        <div class="list-item-content">
+                            <div class="list-item-title">${email}</div>
+                        </div>
+                        <button class="btn btn-danger btn-sm" onclick="removeFromWhitelist('${email}')">
+                            <span>🗑️</span> Remove
+                        </button>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // ========== Unsubscribe Opportunities ==========
+        async function findUnsubscribeOpportunities() {
+            const operationId = 'findUnsubscribe';
+            const cards = document.querySelectorAll('#cleanupContent .card');
+            const unsubscribeCard = cards[2];
+
+            startOperation(operationId, 'cleanup');
+            setCardLoading(unsubscribeCard, true, 'Scanning for subscriptions...');
+            updateGlobalProgress(30);
+
+            try {
+                const response = await fetch('/api/unsubscribe-opportunities');
+                updateGlobalProgress(70);
+                const data = await response.json();
+
+                const container = document.getElementById('unsubscribeContainer');
+
+                if (data.success && data.opportunities && data.opportunities.length > 0) {
+                    let html = '<div class="list-container">';
+
+                    data.opportunities.forEach(opp => {
+                        html += `
+                            <div class="list-item">
+                                <div class="list-item-content">
+                                    <div class="list-item-title">${opp.sender || 'Unknown Sender'}</div>
+                                    <div class="list-item-meta">
+                                        ${opp.count || 0} emails • Last received: ${opp.last_received || 'Unknown'}
+                                    </div>
+                                </div>
+                                <button class="btn btn-warning btn-sm" onclick="window.open('${opp.unsubscribe_link}', '_blank')">
+                                    <span>📤</span> Unsubscribe
+                                </button>
+                            </div>
+                        `;
+                    });
+
+                    html += '</div>';
+                    container.innerHTML = html;
+                    showToast(`Found ${data.opportunities.length} subscription opportunities`, 'info', 'Scan Complete');
+                } else {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">🎉</div>
+                            <div class="empty-state-text">No unsubscribe opportunities found</div>
+                        </div>
+                    `;
+                    showToast('No subscription opportunities found', 'info');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Error: ' + error.message, 'error');
+            } finally {
+                updateGlobalProgress(100);
+                setCardLoading(unsubscribeCard, false);
+                endOperation(operationId, 'cleanup');
+            }
+        }
+
+        // ========== Duplicate Detection ==========
+        async function findDuplicates() {
+            const operationId = 'findDuplicates';
+            const cards = document.querySelectorAll('#cleanupContent .card');
+            const duplicatesCard = cards[3];
+
+            startOperation(operationId, 'cleanup');
+            setCardLoading(duplicatesCard, true, 'Scanning for duplicates...');
+            updateGlobalProgress(30);
+
+            try {
+                const response = await fetch('/api/duplicates');
+                updateGlobalProgress(70);
+                const data = await response.json();
+
+                const container = document.getElementById('duplicatesContainer');
+
+                if (data.success && data.duplicates && data.duplicates.length > 0) {
+                    let html = `
+                        <div class="alert alert-warning active">
+                            <span class="alert-icon">⚠️</span>
+                            Found ${data.duplicates.length} sets of duplicate emails
+                        </div>
+                        <div class="list-container">
+                    `;
+
+                    data.duplicates.forEach((dup, index) => {
+                        html += `
+                            <div class="list-item">
+                                <div class="list-item-content">
+                                    <div class="list-item-title">${dup.subject || 'No Subject'}</div>
+                                    <div class="list-item-meta">
+                                        ${dup.count || 0} duplicates found
+                                    </div>
+                                </div>
+                                <button class="btn btn-danger btn-sm" onclick="deleteDuplicates(${index})">
+                                    <span>🗑️</span> Delete Duplicates
+                                </button>
+                            </div>
+                        `;
+                    });
+
+                    html += '</div>';
+                    container.innerHTML = html;
+                    showToast(`Found ${data.duplicates.length} sets of duplicates`, 'warning', 'Scan Complete');
+                } else {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">✅</div>
+                            <div class="empty-state-text">No duplicates found</div>
+                            <div class="empty-state-subtext">Your inbox is clean!</div>
+                        </div>
+                    `;
+                    showToast('No duplicates found - inbox is clean!', 'success');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Error: ' + error.message, 'error');
+            } finally {
+                updateGlobalProgress(100);
+                setCardLoading(duplicatesCard, false);
+                endOperation(operationId, 'cleanup');
+            }
+        }
+
+        function deleteDuplicates(index) {
+            alert('Delete duplicates functionality would be implemented here for set ' + index);
+        }
+
+        // ========== Gmail Account Management ==========
+        async function loadGmailAccounts() {
+            try {
+                const response = await fetch('/api/gmail-accounts');
+                const data = await response.json();
+                const container = document.getElementById('gmail-accounts-container');
+
+                if (data.success && data.accounts && data.accounts.length > 0) {
+                    let html = '<div class="list-container">';
+
+                    data.accounts.forEach(account => {
+                        const connectedDate = new Date(account.connected_at).toLocaleDateString();
+                        const statusBadge = account.is_expired
+                            ? '<span class="badge badge-warning">Token Expired</span>'
+                            : '<span class="badge badge-success">Connected</span>';
+
+                        html += `
+                            <div class="list-item">
+                                <div class="list-item-content">
+                                    <div class="list-item-title">${account.gmail_email}</div>
+                                    <div class="list-item-meta">Connected on ${connectedDate}</div>
+                                    <div style="margin-top: 8px;">
+                                        ${statusBadge}
+                                    </div>
+                                </div>
+                                <div class="list-item-actions">
+                                    <button class="btn btn-sm btn-danger" onclick="disconnectGmailAccount('${account.gmail_email}')">
+                                        Disconnect
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    html += '</div>';
+                    container.innerHTML = html;
+                } else {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📧</div>
+                            <div class="empty-state-text">No Gmail Account Connected</div>
+                            <div class="empty-state-subtext">Click the button below to connect your Gmail account</div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading Gmail accounts:', error);
+                document.getElementById('gmail-accounts-container').innerHTML = `
+                    <div class="alert alert-error active">
+                        <span class="alert-icon">❌</span>
+                        Error loading Gmail accounts: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        function disconnectGmailAccount(email) {
+            if (confirm(`Are you sure you want to disconnect ${email}?`)) {
+                window.location.href = `/disconnect-gmail/${encodeURIComponent(email)}`;
+            }
+        }
+
+        // ========== Settings ==========
+        function loadSettings() {
+            // Load settings from localStorage or API
+            const savedMaxEmails = localStorage.getItem('defaultMaxEmails');
+            if (savedMaxEmails) {
+                document.getElementById('defaultMaxEmails').value = savedMaxEmails;
+            }
+        }
+
+        function saveSettings() {
+            const maxEmails = document.getElementById('defaultMaxEmails').value;
+            localStorage.setItem('defaultMaxEmails', maxEmails);
+            showToast('Settings saved successfully!', 'success', 'Settings Saved');
+        }
+
+        async function loadCategories() {
+            try {
+                const response = await fetch('/api/config');
+                const config = await response.json();
+                currentConfig = config;
+
+                const container = document.getElementById('categoriesList');
+
+                if (config.categories && config.categories.length > 0) {
+                    let html = '<div class="list-container">';
+
+                    config.categories.forEach(cat => {
+                        html += `
+                            <div class="list-item">
+                                <div class="list-item-content">
+                                    <div class="list-item-title">${cat.name}</div>
+                                    <div class="list-item-meta">${cat.description}</div>
+                                    <div class="result-badges" style="margin-top: 8px;">
+                                        ${(cat.actions || []).map(action =>
+                                            `<span class="badge badge-info">${action}</span>`
+                                        ).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    html += '</div>';
+                    container.innerHTML = html;
+                }
+            } catch (error) {
+                console.error('Error loading categories:', error);
+            }
+        }
+
+        // ========== Modal Functions ==========
+        function showModal(title, body, callback) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalBody').textContent = body;
+            modalCallback = callback;
+            document.getElementById('confirmModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('confirmModal').classList.remove('active');
+            modalCallback = null;
+        }
+
+        function modalConfirmAction() {
+            if (modalCallback) {
+                modalCallback();
+            }
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('confirmModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
