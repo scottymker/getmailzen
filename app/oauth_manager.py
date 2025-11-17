@@ -16,9 +16,7 @@ class OAuthManager:
     """Manages per-user Gmail OAuth credentials"""
 
     SCOPES = [
-        'https://www.googleapis.com/auth/gmail.modify',
-        'https://www.googleapis.com/auth/gmail.labels',
-        'https://www.googleapis.com/auth/gmail.readonly'
+        'https://mail.google.com/'  # Full Gmail access (includes delete, modify, labels, etc.)
     ]
 
     def __init__(self):

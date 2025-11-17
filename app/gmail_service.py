@@ -13,8 +13,7 @@ from googleapiclient.errors import HttpError
 
 # Gmail API scopes - we need full Gmail access for labeling, deleting, etc.
 SCOPES = [
-    'https://www.googleapis.com/auth/gmail.modify',
-    'https://www.googleapis.com/auth/gmail.labels'
+    'https://mail.google.com/'  # Full Gmail access (includes delete, modify, labels, etc.)
 ]
 
 
