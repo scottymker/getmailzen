@@ -1853,19 +1853,20 @@
 
                 if (data.success && data.health) {
                     const health = data.health;
+                    const stats = health.statistics || {};
 
                     // Update health score
-                    updateHealthChart(health.score || 0);
+                    updateHealthChart(health.health_score || 0);
 
                     // Update metrics
                     document.getElementById('totalEmails').textContent =
-                        (health.total_emails || 0).toLocaleString();
+                        (stats.total_emails_sampled || 0).toLocaleString();
                     document.getElementById('unreadCount').textContent =
-                        (health.unread_count || 0).toLocaleString();
+                        (stats.unread_count || 0).toLocaleString();
                     document.getElementById('storageUsed').textContent =
-                        health.storage_used || '--';
+                        stats.storage_used || '--';
                     document.getElementById('inboxAge').textContent =
-                        health.oldest_email_age || '--';
+                        stats.oldest_email_age || '--';
 
                     showToast('Health score updated successfully', 'success');
                 } else {
