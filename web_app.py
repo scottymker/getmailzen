@@ -18,6 +18,16 @@ from app.oauth_manager import OAuthManager
 # Load environment variables
 load_dotenv()
 
+# Create credentials.json from environment variable if it doesn't exist
+if not os.path.exists('credentials.json'):
+    google_creds = os.getenv('GOOGLE_CREDENTIALS_JSON')
+    if google_creds:
+        with open('credentials.json', 'w') as f:
+            f.write(google_creds)
+        print("✓ Created credentials.json from environment variable")
+    else:
+        print("⚠ Warning: GOOGLE_CREDENTIALS_JSON not set")
+
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY')
 CORS(app)
