@@ -128,14 +128,15 @@ def register():
         # Register user
         auth_service = AuthService()
         success, result = auth_service.register_user(email, password)
-        auth_service.close()
 
         if success:
             flash(f'Registration successful! Welcome to GetMailZen. You have a 14-day free trial.', 'success')
             # Auto-login after registration
             login_user(result)
+            auth_service.close()
             return redirect(url_for('dashboard'))
         else:
+            auth_service.close()
             flash(result, 'error')
             return render_template('register.html')
 
@@ -160,10 +161,10 @@ def login():
         # Authenticate user
         auth_service = AuthService()
         success, result = auth_service.authenticate_user(email, password)
-        auth_service.close()
 
         if success:
             login_user(result, remember=remember)
+            auth_service.close()
 
             # Redirect to next page or dashboard
             next_page = request.args.get('next')
@@ -171,6 +172,7 @@ def login():
                 return redirect(next_page)
             return redirect(url_for('dashboard'))
         else:
+            auth_service.close()
             flash(result, 'error')
             return render_template('login.html')
 
