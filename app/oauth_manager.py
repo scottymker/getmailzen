@@ -86,13 +86,22 @@ class OAuthManager:
             tuple: (success: bool, message: str)
         """
         try:
+            print(f"🔍 [OAuth] Starting callback handler for user {user_id}")
+            print(f"🔍 [OAuth] Redirect URI: {redirect_uri}")
+
             flow = self.create_oauth_flow(redirect_uri)
+            print(f"🔍 [OAuth] Created OAuth flow")
+
             flow.fetch_token(authorization_response=authorization_response)
+            print(f"🔍 [OAuth] Successfully fetched token")
 
             credentials = flow.credentials
+            print(f"🔍 [OAuth] Got credentials, has refresh token: {credentials.refresh_token is not None}")
 
             # Extract user's Gmail email from token info
+            print(f"🔍 [OAuth] Extracting Gmail email...")
             gmail_email = self._get_gmail_email_from_credentials(credentials)
+            print(f"🔍 [OAuth] Gmail email: {gmail_email}")
 
             # Check if this Gmail account is already connected to another user
             existing = self.db.query(GmailCredential).filter(
@@ -101,6 +110,7 @@ class OAuthManager:
             ).first()
 
             if existing:
+                print(f"❌ [OAuth] Gmail account already connected to another user")
                 return False, f"This Gmail account is already connected to another GetMailZen account"
 
             # Check if this user already has this Gmail account
@@ -111,14 +121,21 @@ class OAuthManager:
 
             if existing_user_cred:
                 # Update existing credentials
+                print(f"🔍 [OAuth] Updating existing credentials for {gmail_email}")
                 self._update_credentials(existing_user_cred, credentials)
+                print(f"✅ [OAuth] Successfully updated credentials")
                 return True, f"Gmail account {gmail_email} reconnected successfully"
             else:
                 # Create new credentials
+                print(f"🔍 [OAuth] Storing new credentials for {gmail_email}")
                 self._store_new_credentials(user_id, gmail_email, credentials)
+                print(f"✅ [OAuth] Successfully stored new credentials")
                 return True, f"Gmail account {gmail_email} connected successfully"
 
         except Exception as e:
+            print(f"❌ [OAuth] Exception in callback handler: {str(e)}")
+            import traceback
+            traceback.print_exc()
             return False, f"OAuth callback failed: {str(e)}"
 
     def _get_gmail_email_from_credentials(self, credentials):
