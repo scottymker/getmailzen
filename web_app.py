@@ -301,9 +301,8 @@ def get_gmail_accounts():
 @app.route('/')
 @login_required
 def index():
-    """Main dashboard page"""
-    config = load_config()
-    return render_template('index.html', config=config, user=current_user)
+    """Main dashboard page - redirect to new dashboard"""
+    return redirect(url_for('dashboard'))
 
 
 @app.route('/dashboard')
